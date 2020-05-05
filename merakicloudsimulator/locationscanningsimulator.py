@@ -16,25 +16,17 @@ client_macs = []
 ap_macs = []
 ap_data = []
 server_url = ""
-num_aps = 0
-num_clients = 0
+num_aps = ""
 
-stop_location_thread = False
-location_thread = threading.Thread() 
-
-def ap_cycle(num_aps,map_bounds):
+def ap_cycle(num_aps):
     ap = 0
-    
+
     while True:
-        global stop_location_thread
-        if stop_location_thread:
-            print("Stopping Posting of Location Stream")
-            break
         print("heading to postJSON " + str(ap))
         post_json(ap)
         print("back from postJSON " + str(ap))
         determine_seen_associated()
-        update_location_data(ap,map_bounds)
+        update_location_data(ap)
         print("back from update" + str(ap))
         print("sleeping")
         sleep(10)
@@ -45,24 +37,7 @@ def ap_cycle(num_aps,map_bounds):
             ap += 1
 
 
-def manage_location_streaming_thread(num_aps,map_bounds):
-    global stop_location_thread
-    global location_thread
-
-    if location_thread.isAlive():
-        print("location thread already started, killing an restarting")
-        stop_location_thread = True
-        location_thread.join()
-        print('location thread killed')
-        stop_location_thread = False
-        location_thread = threading.Thread(target = ap_cycle,args=[num_aps,map_bounds], daemon=True) 
-        location_thread.start()
-    else:
-        print('location thread not started; starting...')
-        stop_location_thread = False
-        location_thread = threading.Thread(target = ap_cycle,args=[num_aps,map_bounds], daemon=True)
-        location_thread.start()
-
+post_location_thread = threading.Thread(target = ap_cycle,args=[num_aps], daemon=True) 
 
 @merakicloudsimulator.route("/bounds/<map_bounds_in>", methods=["GET"])
 def set_location_bounds(map_bounds_in):
@@ -141,29 +116,20 @@ def generate_ap_macs(num_aps, num_clients):
 
 
 # Kick off simulator and create baseline dataset
-@merakicloudsimulator.route("/locationscanning/<set>", methods=["POST","GET"])
-def generate_location_data(set):
+@merakicloudsimulator.route("/locationscanning", methods=["POST","GET"])
+def generate_location_data():
+    global validator
     global server_url
     global map_bounds
     global client_macs
     global ap_macs
     global ap_data
-    global num_aps
-    global num_clients
+    global post_location_thread
 
-    location_data = ""
-    client_macs = []
-    ap_macs = []
-    ap_data = []
-    server_url = ""
-    num_aps = 0
-    num_clients = 0
-
-
-    if request.method == "POST" and set == 'set':
-        num_clients = int(request.form["num_clients"].lstrip().rstrip())
-        num_aps = int(request.form["num_aps"].lstrip().rstrip())
-        server_url = request.form["server_url"].lstrip().rstrip()
+    if request.method == "POST":
+        num_clients = int(request.form["num_clients"])
+        num_aps = int(request.form["num_aps"])
+        server_url = request.form["server_url"]
 
         device_list = [
             {"os": "Android", "manufacturer": "Samsung"},
@@ -241,19 +207,27 @@ def generate_location_data(set):
             )
 
         # Pass the AP array to cycle through them to
-        manage_location_streaming_thread(num_aps,map_bounds)
+        if not post_location_thread.isAlive():
+            print("posting location thread not started, starting")
+            post_location_thread.start() 
+        else:
+            print("posting thread already started, killing an restarting")
+            stop_post_location_thread = True
+            post_location_thread.join() 
+            print('post_thread killed')
+            stop_post_location_thread = False
+            post_location_thread = threading.Thread(target = ap_cycle,args=[num_aps], daemon=True) 
+            post_location_thread.start()
 
-        return render_template("locationscanningrunning.html", num_aps=num_aps, \
-            num_clients=num_clients, server_url=server_url, datavar=ap_data)
-    elif set=='reset':
         return render_template("locationscanning.html", num_aps=num_aps, \
-            num_clients=num_clients, server_url=server_url, datavar=ap_data)
+            num_clients=num_clients, server_url=server_url, datavar=ap_data)    
     else:
-        return render_template("locationscanning.html", num_aps=num_aps, \
-            num_clients=num_clients, server_url=server_url, datavar=ap_data)
+        return render_template("locationscanning.html")
 
-def update_location_data(ap,map_bounds):
+
+def update_location_data(ap):
     global ap_data
+    global map_bounds
 
     date_time_now = datetime.datetime.now()
     epoch = (
@@ -284,8 +258,8 @@ def update_location_data(ap,map_bounds):
     print(ap_data[ap])
 
 def post_json(ap):
-    global server_url
     global ap_data
+    global server_url
 
     requests.post(server_url, json=ap_data[ap])  # post to listener
     print(ap_data[ap])
