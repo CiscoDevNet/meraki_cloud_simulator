@@ -34,7 +34,9 @@ print("WT_ROOM_ID" + env_user.WT_ROOM_ID)
 teamsapi = WebexTeamsAPI(access_token=env_user.WT_ACCESS_TOKEN)
 
 # MERAKI BASE URL 
-base_url = "http://meraki_cloud_simulator:5001"
+# if running in docker-compose base_url = "http://meraki_cloud_simulator:5001"
+# if running seperately
+base_url = "http://localhost:5001"
 
 # Flask App
 app = Flask(__name__)
@@ -217,7 +219,10 @@ if __name__ == "__main__":
         if tunnel['proto'] == 'https':
             url = tunnel['public_url']
     '''
-    url = "http://meraki-sample-webhook-receiver:5005"
+    # If using docker-compose
+    # url = "http://meraki-sample-webhook-receiver:5005"
+    # If using standalone
+    url = "http://localhost:5005"
 
     # Configuration parameters
     network_id = get_network_id(args[0])

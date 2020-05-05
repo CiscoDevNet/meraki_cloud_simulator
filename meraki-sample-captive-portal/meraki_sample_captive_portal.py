@@ -37,7 +37,10 @@ print("WT_ACCESS_TOKEN" + env_user.WT_ACCESS_TOKEN)
 print("WT_ROOM_ID" + env_user.WT_ROOM_ID)
 
 # Module Variables
-base_url = "http://meraki_cloud_simulator:5001"  # Using lab simulator
+## If using docker-compose
+# base_url = "http://meraki_cloud_simulator:5001"  # Using lab simulator
+## If using stand alone
+base_url = "http://localhost:5001"
 captive_portal_base_url = "http://localhost:5004"
 base_grant_url = ""
 user_continue_url = ""
