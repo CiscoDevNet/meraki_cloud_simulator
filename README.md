@@ -78,18 +78,15 @@ pip install -r requirements.txt
 python meraki_sample_location_scanning_receiver.py -v simulator -s simulator
 ```
 
-### If running as a Python standalone service with Meraki sending data
+### If running as a Python standalone service with your Meraki organization sending data
 
-This sample can be also used to collect data from the live Meraki platform rather than the simulator.  
+This sample can be also used to collect data from the live Meraki platform rather than the simulator.  If you are an administrator in a Meraki organization you can do the following.
 
-1. Navigate to the [Meraki Dashboard](https://meraki.cisco.com). You can login with username devnetexpressattendee@cisco.com and password merakirocks to see the configuration in the dashboard or use your login to access your own organization.
-1. On the left rail, click on the **Networks** drop-down and make sure to choose the __DevNetLab__ network if using the devnetexpressattendee login. This changes the context to the network to which you'll configure the location scanning.
+1. Navigate to the [Meraki Dashboard](https://meraki.cisco.com). Login with your username and password
+1. On the left rail, click on the **Networks** drop-down and make sure to choose the desired network. This changes the context to the network to which you'll configure the location scanning.
 1. Under **Network**, select **Network-wide->General**.
 1. Scroll down to **Location and Scanning** and verify the API is enabled.
-1. An adminsitrator would add in the publicly accessible url of the receiving application in the **Post URL** and **Secret** as desired.  Note the validator key.
-1. Click **Validate** to verify connectivity.
-1. If your server validates, then Meraki can send the `HTTPS POST` data to it.
-1. Scroll to the bottom and click **Save** in the lower right corner.
+1. Copy the validator key
 
 * virtual envrionment:
 ```
@@ -104,8 +101,25 @@ pip install -r requirements.txt
 
 * Go!
 ```
-python meraki_sample_location_scanning_receiver.py -v <validator from Meraki dashboard> -s <shared secret entered>
+python meraki_sample_location_scanning_receiver.py -v <validator copied from Meraki dashboard> -s <desired shared secret>
 ```
+
+* Expose service using ngrok
+```
+ngrok http 5002
+```
+
+This will allow your service to be accessible to the public internet for testing.
+
+1. Navigate to the [Meraki Dashboard](https://meraki.cisco.com). Login with your username and password
+1. On the left rail, click on the **Networks** drop-down and make sure to choose the desired network. This changes the context to the network to which you'll configure the location scanning.
+1. Under **Network**, select **Network-wide->General**.
+1. Scroll down to **Location and Scanning** and verify the API is enabled.
+1. Update publicly accessible url of the receiving application with the url generated from the **ngrok** tool in the **Post URL** and set the **Secret** to the same value you used to launch your receiver above.
+1. Click **Validate** to verify connectivity.
+1. If your server validates, then Meraki can send the `HTTPS POST` data to it.
+1. Scroll to the bottom and click **Save** in the lower right corner.
+
 
 ## Sample Webhook Alert Receiver
 
