@@ -123,7 +123,17 @@ This will allow your service to be accessible to the public internet for testing
 
 ## Sample Webhook Alert Receiver
 
-Select the alerts for this service to send and configure the HTTP listening service at the bottom and set as default receiver.  Upon Save, sample alerts will be sent on a 10 second basis>
+### If running with docker-compose
+
+Navigate to http://localhost:5001/go and select Webhook Alerts Simulator.  Select the desired alerts to collect and at the bottom fill out the 
+
+### If running as a Python standalone service with simulator sending data
+
+This sample can be run as a python standalone service as well.  Use this if you're running the simulator as a standalone Python application.
+
+
+### If running as a Python standalone service with your Meraki organization sending data
+
 
 ## Captive portal
 
