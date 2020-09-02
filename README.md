@@ -3,8 +3,8 @@ Locally run Python 3.5+ Flask based application that provides HTTP POST simulati
 
 The simulator can be run as a standalone python application or as Docker container in conjunction with all supporting samples (location scanning, webhook alerts, and captive portal).
 
-[Run as Docker Container](#Run-as-Docker-Container)
-[Run as Python Standalone](#Run-as-Python-Standalone)
+* [Run as Docker Container](#Run-as-Docker-Container)
+* [Run as Python Standalone](#Run-as-Python-Standalone)
 
 ## Run as Docker Container
 
@@ -107,7 +107,7 @@ pip install -r requirements.txt
 python meraki_sample_location_scanning_receiver.py -v <validator from Meraki dashboard> -s <shared secret entered>
 ```
 
-## Webhook Alerts
+## Sample Webhook Alert Receiver
 
 Select the alerts for this service to send and configure the HTTP listening service at the bottom and set as default receiver.  Upon Save, sample alerts will be sent on a 10 second basis>
 
