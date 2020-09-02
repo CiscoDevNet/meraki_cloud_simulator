@@ -1,6 +1,20 @@
 # Meraki Cloud Simulator
 Locally run Python 3.5+ Flask based application that provides HTTP POST simulations of Location Scanning, WebHook Alerts and Splash Page (Captive Portal) Integrations.
 
+The simulator can be run as a standalone python application or as Docker container in conjunction with all supporting samples (location scanning, webhook alerts, and captive portal).
+
+[Run as Docker Container](#Run-as-Docker-Container)
+
+(##Run-as-Docker-Container)
+
+The webhook simulator and the captive portal simulator use Webex Teams to post updates.  Before starting the application, add in your developer token and room ID  (see: https://developer.webex.com) that you'd like to post notifications to.  Those are added in the wt_vars.env file and will be pulled into the appropriate containters.
+
+```
+docker-compose up
+```
+
+Head to http://localhost:5001/go to validate simulator is up and running.
+
 To run:
 
 * virtual envrionment:
