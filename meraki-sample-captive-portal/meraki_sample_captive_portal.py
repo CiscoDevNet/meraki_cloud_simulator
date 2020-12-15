@@ -228,6 +228,7 @@ def parse_cli_args(argv):
     network_name = None
     ssid_name = None
     ssid_password = None
+    in_docker = None
 
     try:
         opts, args = getopt.getopt(

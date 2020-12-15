@@ -183,6 +183,12 @@ def set_alerts(network_id,http_server_id):
 
 # Launch application with supplied arguments
 def main(argv):
+    """Parse command line arguments."""
+    network = None
+    secret = None
+    server_name = None
+    in_docker = None
+    
     try:
         opts, args = getopt.getopt(argv, "hn:s:m:d:", ["network=", "secret=","server_name=","in_docker="])
     except getopt.GetoptError:
