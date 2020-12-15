@@ -37,10 +37,10 @@ print("WT_ACCESS_TOKEN" + env_user.WT_ACCESS_TOKEN)
 print("WT_ROOM_ID" + env_user.WT_ROOM_ID)
 
 # Module Variables
-## If using docker-compose
-# base_url = "http://meraki_cloud_simulator:5001"  # Using lab simulator
-## If using stand alone
-base_url = "http://localhost:5001"
+# MERAKI BASE URL 
+# if running in docker-compose base_url = "http://meraki_cloud_simulator:5001"
+base_url = ""
+
 captive_portal_base_url = "http://localhost:5004"
 base_grant_url = ""
 user_continue_url = ""
@@ -57,6 +57,7 @@ app = Flask(__name__)
 def get_network_id(network_name):
     """Get the network ID for a Meraki Network; searching by network name."""
     global network_id
+    global base_url
 
     # Retrieve the list of organizations accessible to your API token
     # MISSION TODO
@@ -97,6 +98,7 @@ def get_network_id(network_name):
 
 
 def set_splash_page_settings(network_id, captive_portal_base_url):
+    global base_url
     """Configure the splash page settings for a network."""
     # MISSION TODO
     response = requests.put(
@@ -118,6 +120,7 @@ def set_splash_page_settings(network_id, captive_portal_base_url):
 
 
 def set_ssid_settings(network_id, wireless_name, wireless_password):
+    global base_url
     """Configure an SSID to use the External Captive Portal."""
     # MISSION TODO
     response = requests.put(
@@ -155,6 +158,7 @@ def set_ssid_settings(network_id, wireless_name, wireless_password):
 # Flask micro-webservice URI endpoints
 @app.route("/click", methods=["GET"])
 def get_click():
+    global base_url
     """Process GET requests to the /click URI; render the click.html page."""
     global base_grant_url
     global user_continue_url
@@ -180,6 +184,7 @@ def get_click():
 
 @app.route("/login", methods=["POST"])
 def get_login():
+    global base_url
     """Process POST requests to the /login URI; redirect to grant URL."""
     redirect_url = base_grant_url+"?continue_url="+success_url
     return redirect(redirect_url, code=302)
@@ -187,6 +192,7 @@ def get_login():
 
 @app.route("/success", methods=["GET"])
 def get_success():
+    global base_url
     """Process GET requests to the /success URI; render success.html."""
     # MISSION TODO
     response = requests.get(
@@ -226,15 +232,15 @@ def parse_cli_args(argv):
     try:
         opts, args = getopt.getopt(
             argv,
-            "hn:s:p:",
-            ["network=", "ssid=", "password="],
+            "hn:s:p:d:",
+            ["network=", "ssid=", "password=","in_docker="],
         )
     except getopt.GetoptError:
-        print(f"Usage: {__file__} -n network -s ssid -p password")
+        print(f"Usage: {__file__} -n network -s ssid -p password -d yes/no")
         sys.exit(2)
     for opt, arg in opts:
         if opt == "-h":
-            print(f"Usage: {__file__} -n network -s ssid -p password")
+            print(f"Usage: {__file__} -n network -s ssid -p password -d yes/no")
             sys.exit()
         elif opt in ("-n", "--network"):
             network_name = arg
@@ -242,14 +248,17 @@ def parse_cli_args(argv):
             ssid_name = arg
         elif opt in ("-p", "--password"):
             ssid_password = arg
+        elif opt in ("-d", "--in_docker"):
+            in_docker = arg
 
-    if network_name and ssid_name and ssid_password:
+    if network_name and ssid_name and ssid_password and in_docker:
         print("network:  " + network_name)
         print("ssid:     " + ssid_name)
         print("password: " + ssid_password)
-        return network_name, ssid_name, ssid_password
+        print("in_docker: " + in_docker)
+        return [network_name, ssid_name, ssid_password, in_docker]
     else:
-        print(f"Usage: {__file__} -n network -s ssid -p password")
+        print(f"Usage: {__file__} -n network -s ssid -p password -d yes/no")
         sys.exit(2)
 
 
@@ -270,9 +279,16 @@ if __name__ == "__main__":
     # Parse settings from CLI arguments and configure the captive portal using
     # the Meraki Dashboard APIs.
     args = parse_cli_args(sys.argv[1:])
+    in_docker = args[3]
+
+    if in_docker == "yes":
+        base_url = "http://meraki_cloud_simulator:5001"
+    else:
+        base_url = "http://localhost:5001"
     network_id = get_network_id(args[0])
     ssid = args[1]
     password = args[2]
+
     set_ssid_settings(network_id, ssid, password)
     set_splash_page_settings(network_id, captive_portal_base_url)
 

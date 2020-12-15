@@ -35,8 +35,8 @@ teamsapi = WebexTeamsAPI(access_token=env_user.WT_ACCESS_TOKEN)
 
 # MERAKI BASE URL 
 # if running in docker-compose base_url = "http://meraki_cloud_simulator:5001"
-# if running seperately
-base_url = "http://localhost:5001"
+base_url = ""
+
 
 # Flask App
 app = Flask(__name__)
@@ -46,6 +46,7 @@ app = Flask(__name__)
 @app.route("/", methods=["POST"])
 def get_webhook_json():
     global webhook_data
+    global base_url
 
     # Webhook Receiver
     webhook_data = request.json
@@ -65,6 +66,7 @@ def get_webhook_json():
 
 # Get Network ID based on Network name entry
 def get_network_id(network_wh):
+    global base_url
     orgs = ""
 
     # Get Orgs that entered Meraki API Key has access to
@@ -112,6 +114,7 @@ def get_network_id(network_wh):
 
 # Set the Webhook receiver in Meraki
 def set_webhook_receiver(network_id,url,secret,server_name):
+    global base_url
     try:
         # MISSION TODO
         https_server_id = requests.post(
@@ -139,6 +142,7 @@ def set_webhook_receiver(network_id,url,secret,server_name):
 
 # Set the Alerts in Meraki (on set 'settingsChanged')
 def set_alerts(network_id,http_server_id):
+    global base_url
     try:
         # MISSION TODO
         response = requests.put(
@@ -180,13 +184,13 @@ def set_alerts(network_id,http_server_id):
 # Launch application with supplied arguments
 def main(argv):
     try:
-        opts, args = getopt.getopt(argv, "hn:s:m:", ["network=", "secret=","server_name="])
+        opts, args = getopt.getopt(argv, "hn:s:m:d:", ["network=", "secret=","server_name=","in_docker="])
     except getopt.GetoptError:
-        print("webhookreceiver.py -n network -s <secret> -m <server_name>")
+        print("webhookreceiver.py -n network -s <secret> -m <server_name> -d <yes/no>")
         sys.exit(2)
     for opt, arg in opts:
         if opt == "-h":
-            print("webhookreceiver.py -n network -s <secret> -m <server_name>")
+            print("webhookreceiver.py -n network -s <secret> -m <server_name> -d <yes/no>")
             sys.exit()
         elif opt in ("-s", "--secret"):
             secret = arg
@@ -194,11 +198,14 @@ def main(argv):
             network = arg
         elif opt in ("-m", "--server_name"):
             server_name = arg
+        elif opt in ("-d", "--in_docker"):
+            in_docker = arg
 
     print("secret: " + secret)
     print("network: " + network)
     print("server_name: " + server_name)
-    return [network,secret,server_name]
+    print("in_docker: " + in_docker)
+    return [network,secret,server_name,in_docker]
 
 
 if __name__ == "__main__":
@@ -219,12 +226,15 @@ if __name__ == "__main__":
         if tunnel['proto'] == 'https':
             url = tunnel['public_url']
     '''
-    # If using docker-compose
-    # url = "http://meraki-sample-webhook-receiver:5005"
-    # If using standalone
-    url = "http://localhost:5005"
 
     # Configuration parameters
+    in_docker = args[3]
+    if in_docker == "yes":
+        base_url = "http://meraki_cloud_simulator:5001"
+        url = "http://meraki-sample-webhook-receiver:5005"
+    else:
+        base_url = "http://localhost:5001"
+        url = "http://localhost:5005"
     network_id = get_network_id(args[0])
     secret = args[1]
     server_name = args[2]
